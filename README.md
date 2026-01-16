@@ -1,166 +1,113 @@
-Fraud Detection Using Machine Learning (PaySim Dataset)
-📌 Project Overview
+# 🔍 Fraud Detection Using Machine Learning (PaySim Dataset)
+
+## 📌 Overview
+This repository contains an **end-to-end machine learning solution** for detecting fraudulent financial transactions using the **PaySim dataset**.  
+The project demonstrates **data cleaning, feature engineering, model development, evaluation, and business-driven fraud prevention strategies**.
 
-This project focuses on building a machine learning–based fraud detection system for a financial company using a large-scale transactional dataset (PaySim). The goal is to accurately identify fraudulent transactions and propose actionable business strategies based on model insights.
+The solution is designed to mirror **real-world fraud detection challenges**, including extreme class imbalance and time-dependent transaction behavior.
 
-The dataset contains 6.3 million transactions over 30 days, simulated to reflect real-world financial fraud patterns.
+---
 
-📂 Dataset Description
+## 📊 Dataset
+- **Dataset:** PaySim (Simulated Financial Transactions)
+- **Rows:** 6,362,620
+- **Time Span:** 30 days (1 step = 1 hour, total 744 steps)
 
-Rows: 6,362,620
+### Key Columns
+| Column | Description |
+|------|------------|
+| `type` | Transaction type (TRANSFER, CASH_OUT, PAYMENT, etc.) |
+| `amount` | Transaction amount |
+| `oldbalanceOrg`, `newbalanceOrig` | Sender balances |
+| `oldbalanceDest`, `newbalanceDest` | Receiver balances |
+| `isFraud` | Target variable (1 = Fraud, 0 = Legitimate) |
+| `isFlaggedFraud` | Existing rule-based fraud flag (used only for comparison) |
 
-Columns: 10 (original) + engineered features
+---
 
-Time Unit: step (1 step = 1 hour, total 744 steps)
+## 🧹 Data Cleaning
+- Verified **no missing values**
+- Outliers in monetary variables capped at the **99.9th percentile**
+- Multicollinearity assessed using **VIF**
+  - High/infinite VIF values observed due to deterministic balance relationships
+  - No features removed, as **tree-based models are robust to multicollinearity**
 
-Key Columns
+---
 
-type: Transaction type (PAYMENT, TRANSFER, CASH_OUT, etc.)
+## 🧠 Feature Engineering
+- Balance change and balance error indicators
+- Merchant vs non-merchant transaction flag
+- Hour-of-day feature derived from transaction time
+- One-hot encoding of transaction types
 
-amount: Transaction amount
+These features capture known fraud behaviors such as **TRANSFER → CASH_OUT sequences** and **balance inconsistencies**.
 
-oldbalanceOrg, newbalanceOrig: Sender balances
+---
 
-oldbalanceDest, newbalanceDest: Receiver balances
+## ⚖️ Class Imbalance Handling
+- Fraud rate ≈ **0.13%**
+- Applied **SMOTE** on training data only (fraud ≈ 5%)
+- Validation data retained original class distribution
 
-isFraud: Target variable (1 = Fraud, 0 = Legitimate)
+---
 
-isFlaggedFraud: Existing rule-based flag (used only for comparison)
+## 🤖 Model
+- **Algorithm:** XGBoost Classifier
+- **Why XGBoost?**
+  - Handles large-scale data efficiently
+  - Robust to multicollinearity
+  - Captures non-linear fraud patterns
+  - Performs well on highly imbalanced datasets
 
-🧹 1. Data Cleaning
+- **Train–Validation Strategy:**  
+  Time-based split using transaction steps to prevent data leakage
 
-Missing Values: None found in the dataset
+---
 
-Outliers: Monetary variables capped at the 99.9th percentile
+## 📈 Model Evaluation
+Accuracy is not used due to class imbalance.
 
-Multicollinearity:
+### Metrics Used
+- ROC-AUC
+- Precision, Recall, F1-score
+- Probability distribution analysis
 
-Diagnosed using VIF
+**Result:**  
+- ROC-AUC ≈ **0.99**
+- Strong separation between fraudulent and legitimate transactions
 
-High/infinite VIF values observed due to deterministic balance relationships
+---
 
-No features removed, as tree-based models are robust to multicollinearity
+## 🔑 Key Fraud Indicators
+- High transaction amounts
+- Balance inconsistencies
+- TRANSFER and CASH_OUT transaction types
+- Zero or abnormal destination balances
+- Unusual transaction timing
 
-🧠 2. Feature Engineering
+These indicators align with real-world financial fraud behavior.
 
-To capture fraud behavior effectively, the following features were engineered:
+---
 
-Balance change and balance error features
+## 🛡️ Fraud Prevention Strategy
+- Replace static rules with **ML-based dynamic risk scoring**
+- Monitor **TRANSFER → CASH_OUT** transaction chains
+- Apply probability-based thresholds
+- Tiered response system:
+  - Low risk → Auto-approve
+  - Medium risk → Friction (OTP, delay)
+  - High risk → Block or manual review
 
-Merchant vs non-merchant flag
+---
 
-Hour-of-day feature from transaction time
-
-One-hot encoding of transaction types
-
-These features are strongly aligned with known fraud patterns such as TRANSFER → CASH_OUT sequences and balance inconsistencies.
-
-⚖️ 3. Class Imbalance Handling
-
-Fraud rate ≈ 0.13%
-
-Applied SMOTE on training data only to raise fraud proportion to ~5%
-
-Validation data kept at original distribution to reflect real-world conditions
-
-🤖 4. Model Description
-
-Model Used: XGBoost Classifier
-
-Why XGBoost?
-
-Handles large datasets efficiently
-
-Captures non-linear patterns
-
-Robust to multicollinearity
-
-Performs well on imbalanced data
-
-Train–Validation Split:
-
-Time-based split using step
-
-Prevents data leakage
-
-📊 5. Model Performance Evaluation
-
-Due to extreme class imbalance, accuracy was not used as the primary metric.
-
-Metrics Used:
-
-ROC-AUC
-
-Precision, Recall, F1-score
-
-Probability distribution analysis
-
-Result:
-
-ROC-AUC ≈ 0.99
-
-High recall with controlled false positives
-
-The probability distribution shows strong separation between fraud and non-fraud cases.
-
-🔍 6. Key Fraud Predictors
-
-Top indicators of fraud include:
-
-Transaction amount
-
-Balance inconsistencies
-
-TRANSFER and CASH_OUT transaction types
-
-Zero or abnormal destination balances
-
-Unusual transaction timing
-
-These factors align well with real-world financial fraud behavior.
-
-🛡️ 7. Fraud Prevention Strategy
-
-Based on model insights, the following actions are recommended:
-
-Replace static rules with ML-based risk scoring
-
-Monitor and restrict TRANSFER → CASH_OUT chains
-
-Use dynamic probability thresholds
-
-Apply tiered actions:
-
-Low risk → auto-approve
-
-Medium risk → friction (OTP, delay)
-
-High risk → block or manual review
-
-📈 8. Measuring Effectiveness
-
+## 📏 Measuring Effectiveness
 Post-deployment effectiveness can be measured using:
+- Reduction in fraud losses
+- Recall of confirmed fraud cases
+- False positive rate
+- Manual review workload
+- A/B testing against rule-based systems
 
-Reduction in fraud losses
+---
 
-Recall of confirmed fraud cases
-
-False positive rate
-
-Manual review workload
-
-A/B testing against rule-based systems
-
-Continuous monitoring ensures adaptability to evolving fraud patterns.
-
-📁 Project Files
-
-Fraud.ipynb – Complete Jupyter Notebook (code + analysis)
-
-Fraud.csv – Dataset
-
-README.md – Project documentation
-
-✅ Conclusion
-
-This project demonstrates an end-to-end fraud detection pipeline combining data cleaning, feature engineering, machine learning, and business judgment. The solution effectively improves upon traditional rule-based systems and provides a scalable framework for real-world deployment.
+## 📁 Repository Structure
